@@ -1,0 +1,12 @@
+/target
+
+
+/WEB-INF
+/.classpath
+/.project
+/.settings
+/build
+/.externalToolBuilders
+/src/main/webapp/resource/swf
+/src/main/webapp/resource/upload/romantic/*.jpg
+/src/main/webapp/resource/upload/romantic/*.png
