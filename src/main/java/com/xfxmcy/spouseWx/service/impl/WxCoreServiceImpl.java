@@ -25,6 +25,7 @@ import com.xfxmcy.spouseWx.message.util.NewsMessage;
 import com.xfxmcy.spouseWx.message.util.TextMessage;
 import com.xfxmcy.spouseWx.service.WxCoreService;
 import com.xfxmcy.spouseWx.util.LoggerWx;
+import com.xfxmcy.spouseWx.util.MessageTemplate;
 import com.xfxmcy.spouseWx.util.MessageUtil;
 
 /**
@@ -91,6 +92,7 @@ public class WxCoreServiceImpl implements WxCoreService {
 		// 当用户发消息
 		else {
 			String content = requestMap.get("Content").trim();
+			/*String content = requestMap.get("Content").trim();
 			LoggerWx.debugInfo("发送方__"+ fromUserName + "开发方__" +toUserName + "发送内容__" + content);
 			Article article = new Article();
 			article.setTitle("xfxmcy");
@@ -107,7 +109,9 @@ public class WxCoreServiceImpl implements WxCoreService {
 			newsMessage.setMsgType(MessageUtil.RESP_MESSAGE_TYPE_NEWS);
 			newsMessage.setArticleCount(articleList.size());
 			newsMessage.setArticles(articleList);
-			respXml = MessageUtil.messageToXml(newsMessage);
+			respXml = MessageUtil.messageToXml(newsMessage);*/
+			textMessage.setContent(MessageTemplate.getMainMenu());
+			respXml = MessageUtil.messageToXml(textMessage);
 			return respXml;
 		}
 		// 将消息对象转换成xml

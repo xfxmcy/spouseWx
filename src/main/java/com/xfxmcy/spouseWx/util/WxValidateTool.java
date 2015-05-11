@@ -34,11 +34,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class WxValidateTool {
 	
-	private static final String token = "52941221";
+	private static final String token = ResourceUtil.getToken();
 	
 	/*	消息加密密钥由43位字符组成，可随机修改，字符范围为A-Z，a-z，0-9。 */
 	
-	private static final String  EncodingAESKey  = "4HjQFTUaMKNz2IAq0K5kUqEas7TAgoRVwviCpWnwbzQ";
+	private static final String  EncodingAESKey  = ResourceUtil.getEncodingAESKey();
 	
 	
 	public  boolean validateRequest(String signature,String timestamp, String nonce){
