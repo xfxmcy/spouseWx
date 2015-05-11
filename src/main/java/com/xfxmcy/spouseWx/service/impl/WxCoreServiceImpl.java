@@ -92,25 +92,15 @@ public class WxCoreServiceImpl implements WxCoreService {
 		// 当用户发消息
 		else {
 			String content = requestMap.get("Content").trim();
-			/*String content = requestMap.get("Content").trim();
-			LoggerWx.debugInfo("发送方__"+ fromUserName + "开发方__" +toUserName + "发送内容__" + content);
-			Article article = new Article();
-			article.setTitle("xfxmcy");
-			article.setDescription("xfxmcy.com  一个家庭网站" + content);
-			article.setPicUrl("http://xfxmcy.com/images/lin.jpg");
-			article.setUrl("http://xfxmcy.com");
-			List<Article> articleList = new ArrayList<Article>();
-			articleList.add(article);
-			// 创建图文消息
-			NewsMessage newsMessage = new NewsMessage();
-			newsMessage.setToUserName(fromUserName);
-			newsMessage.setFromUserName(toUserName);
-			newsMessage.setCreateTime(new Date().getTime());
-			newsMessage.setMsgType(MessageUtil.RESP_MESSAGE_TYPE_NEWS);
-			newsMessage.setArticleCount(articleList.size());
-			newsMessage.setArticles(articleList);
-			respXml = MessageUtil.messageToXml(newsMessage);*/
-			textMessage.setContent(MessageTemplate.getMainMenu());
+			if(null != content && "?".equals(content.trim())){
+				textMessage.setContent(MessageTemplate.getMainMenu());
+			}
+			else if(null == content || "".equals(content.trim())){
+				textMessage.setContent("您什么都没有输入啊... 请输入 	 ? ");
+			}
+			else{
+				textMessage.setContent(content + "请输入 	 ? ");
+			}
 			respXml = MessageUtil.messageToXml(textMessage);
 			return respXml;
 		}
@@ -119,6 +109,23 @@ public class WxCoreServiceImpl implements WxCoreService {
 		return respXml;
 
 	}
-
+	/*String content = requestMap.get("Content").trim();
+	LoggerWx.debugInfo("发送方__"+ fromUserName + "开发方__" +toUserName + "发送内容__" + content);
+	Article article = new Article();
+	article.setTitle("xfxmcy");
+	article.setDescription("xfxmcy.com  一个家庭网站" + content);
+	article.setPicUrl("http://xfxmcy.com/images/lin.jpg");
+	article.setUrl("http://xfxmcy.com");
+	List<Article> articleList = new ArrayList<Article>();
+	articleList.add(article);
+	// 创建图文消息
+	NewsMessage newsMessage = new NewsMessage();
+	newsMessage.setToUserName(fromUserName);
+	newsMessage.setFromUserName(toUserName);
+	newsMessage.setCreateTime(new Date().getTime());
+	newsMessage.setMsgType(MessageUtil.RESP_MESSAGE_TYPE_NEWS);
+	newsMessage.setArticleCount(articleList.size());
+	newsMessage.setArticles(articleList);
+	respXml = MessageUtil.messageToXml(newsMessage);*/
 }
 
