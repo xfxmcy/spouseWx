@@ -14,19 +14,26 @@
 package com.xfxmcy.spouseWx.service.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.xfxmcy.spouseWx.message.util.Article;
 import com.xfxmcy.spouseWx.message.util.NewsMessage;
 import com.xfxmcy.spouseWx.message.util.TextMessage;
+import com.xfxmcy.spouseWx.pojo.Express;
+import com.xfxmcy.spouseWx.pojo.ExpressInfo;
+import com.xfxmcy.spouseWx.pojo.ExpressItem;
 import com.xfxmcy.spouseWx.service.WxCoreService;
+import com.xfxmcy.spouseWx.util.HttpRequestUtil;
 import com.xfxmcy.spouseWx.util.LoggerWx;
 import com.xfxmcy.spouseWx.util.MessageTemplate;
 import com.xfxmcy.spouseWx.util.MessageUtil;
+import com.xfxmcy.spouseWx.util.ResourceUtil;
 
 /**
  * ClassName:WxCoreServiceImpl
@@ -69,7 +76,8 @@ public class WxCoreServiceImpl implements WxCoreService {
 			String eventType = requestMap.get("Event");
 			// 订阅
 			if (eventType.equals(MessageUtil.EVENT_TYPE_SUBSCRIBE)) {
-				textMessage.setContent("您好，欢迎关注xfxmcy！我们的官网  xfxmcy.com");
+				textMessage.setContent("您好，欢迎关注xfxmcy！我们的官网  xfxmcy.com \n"
+						+ "请输入 ? 查看帮助");
 			}
 			// 取消订阅
 			else if (eventType.equals(MessageUtil.EVENT_TYPE_UNSUBSCRIBE)) {
@@ -92,14 +100,41 @@ public class WxCoreServiceImpl implements WxCoreService {
 		// 当用户发消息
 		else {
 			String content = requestMap.get("Content").trim();
-			if(null != content && "?".equals(content.trim())){
+			/*主菜单*/	
+			if(null != content && ("?".equals(content.trim()) || "？".equals(content.trim())) ){
 				textMessage.setContent(MessageTemplate.getMainMenu());
 			}
+			/*空输入*/
 			else if(null == content || "".equals(content.trim())){
-				textMessage.setContent("您什么都没有输入啊... 请输入 	 ? ");
+				textMessage.setContent("您什么都没有输入啊... 可输入 	 ?  查看帮助");
 			}
+			/*天气预报*/
+			else if(null != content && "1".equals(content.trim())){
+				textMessage.setContent("...此功能正在开发  请稍后");
+			}
+			/*快递查询*/
+			else if(null != content && "0".equals(content.trim())){
+				textMessage.setContent("请输入  快递 ,快递公司,快递单号！\n"
+						+ "目前支持  EMS、圆通、顺丰、申通、中通、韵达、天天 \n"
+						+ "eg : 快递,顺丰,892793871298");
+			}
+			else if("主页".equals(content)){
+				return indexWeb(content,fromUserName,toUserName);
+			}
+			
 			else{
-				textMessage.setContent(content + "请输入 	 ? ");
+				String[] orders = content.split(",");
+				String[] ordersSecond = content.split("，");
+				if(orders.length == 3 && "快递".equals(orders[0])){
+					String message = expressWeb(orders,fromUserName,toUserName);
+					textMessage.setContent(message);
+				}
+				else if(ordersSecond.length == 3 && "快递".equals(ordersSecond[0])){
+					String message = expressWeb(ordersSecond,fromUserName,toUserName);
+					textMessage.setContent(message);
+				}
+				else
+					textMessage.setContent(content + "输入错误 	 可输入 	 ?  查看帮助 ");
 			}
 			respXml = MessageUtil.messageToXml(textMessage);
 			return respXml;
@@ -127,5 +162,98 @@ public class WxCoreServiceImpl implements WxCoreService {
 	newsMessage.setArticleCount(articleList.size());
 	newsMessage.setArticles(articleList);
 	respXml = MessageUtil.messageToXml(newsMessage);*/
+	/**
+	 * 
+	 * expressWeb:快递业务处理
+	 *
+	 * @param orders
+	 * @param fromUserName
+	 * @param toUserName
+	 * @return
+	 *   ver     date      		author
+	 * ──────────────────────────────────
+	 *   		 2015年6月11日 		cy
+	 */
+	private String expressWeb(String[] orders, String fromUserName,
+			String toUserName) {
+		String company = orders[1].trim();
+		if("EMS".equalsIgnoreCase(company))
+			company = "EMS" ;
+		String companyCode = ResourceUtil.getExpressCompanyCode(company);
+		if(company == null && null == companyCode){
+			return "请输入我们支持的快递公司...\n目前支持  EMS、圆通、顺丰、申通、中通、韵达、天天 ";
+		}
+		StringBuffer buffer = new StringBuffer();
+		String waybillNumber = orders[2].trim();
+		StringBuffer sb = new StringBuffer(HttpRequestUtil.EXPRESS_URL_JUHE);
+		sb.append("&com=" + companyCode);
+		sb.append("&no=" + waybillNumber);
+		try{ 
+			String result = HttpRequestUtil.httpRequest(sb.toString());
+			Express express = JSONObject.parseObject(result, Express.class);
+			if("200".equals(express.getResultcode())){
+				buffer = new StringBuffer();
+				ExpressInfo info = express.getResult();
+				if(null != info){
+					List<ExpressItem> items = info.getList();
+					Collections.reverse(items);			
+					if(null != items && items.size() > 0){
+						
+						for (int i = 0; i < items.size(); i++) {
+							buffer.append(  items.get(i).getDatetime());
+							buffer.append("\n");
+							buffer.append("" + items.get(i).getRemark());
+							buffer.append("\n\n");
+						}
+					}
+					else
+						return "暂无信息...请稍后查询";
+						
+				}else
+					return "暂无信息...请稍后查询";
+			}
+			else {
+				return "系统访问异常...请稍后查询\n"
+						+ "请查看输入信息是否正确 如运单号";
+			}
+			
+		}catch(Exception e){
+			LoggerWx.loggingWx(e);
+			return "系统暂停服务...请稍后查询";
+		}
+		return buffer.toString();
+		
+	}
+
+	/**
+	 * 
+	 * indexWeb: introduce index web
+	 *
+	 * @param content
+	 * @return
+	 *   ver     date      		author
+	 * ──────────────────────────────────
+	 *   		 2015年6月11日 		cy
+	 */
+	private String indexWeb(String content,String fromUserName,String toUserName){
+		Article article = new Article();
+		article.setTitle("xfxmcy");
+		article.setDescription("xfxmcy.com  一个家庭网站" + content);
+		article.setPicUrl("http://xfxmcy.com/images/lin.jpg");
+		//article.setUrl("http://resource.tjise.edu.cn/spouseWx/index.jsp");
+		article.setUrl("http://xfxmcy.com/");
+		List<Article> articleList = new ArrayList<Article>();
+		articleList.add(article);
+		// 创建图文消息
+		NewsMessage newsMessage = new NewsMessage();
+		newsMessage.setToUserName(fromUserName);
+		newsMessage.setFromUserName(toUserName);
+		newsMessage.setCreateTime(new Date().getTime());
+		newsMessage.setMsgType(MessageUtil.RESP_MESSAGE_TYPE_NEWS);
+		newsMessage.setArticleCount(articleList.size());
+		newsMessage.setArticles(articleList);
+		return  MessageUtil.messageToXml(newsMessage);
+		//response.sendRedirect("http://resource.tjise.edu.cn/spouseWx/index.jsp");
+	}
 }
 

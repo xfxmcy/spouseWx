@@ -233,5 +233,34 @@ public class ResourceUtil {
 		return bundle.getString("media.template");
 		
 	}
+	/**
+	 * 
+	 * getJuHeKey:key for JUHE
+	 *
+	 * @return
+	 *   ver     date      		author
+	 * ──────────────────────────────────
+	 *   		 2015年6月12日 		cy
+	 */
+	public static String getJuHeKey_EXPRESS() {
+		
+		return bundle.getString("expressKey_JUHE");
+		
+	}
+	/**
+	 * 
+	 * getExpressCompanyCode:get expressCompany code
+	 *
+	 * @param company
+	 * @return
+	 *   ver     date      		author
+	 * ──────────────────────────────────
+	 *   		 2015年6月12日 		cy
+	 */
+	public static String getExpressCompanyCode(String company) {
+		
+		return bundle.getString(company + "_JUHE");
+		
+	}
 }
 

@@ -77,7 +77,6 @@ public class WxCoreController {
 		String nonece = request.getParameter("nonce");
 		String echoStr = request.getParameter("echostr");
 		String signature = request.getParameter("signature");*/
-		LoggerWx.debugInfo(timestamp + nonce + echostr + signature);
 		if(null == timestamp || "".equals(timestamp.trim()) ||
 				null == nonce || "".equals(nonce.trim()) ||
 				null == echostr || "".equals(echostr.trim()) ||
@@ -108,7 +107,6 @@ public class WxCoreController {
 	 */
 	@RequestMapping(value = "/wxCore",method = RequestMethod.POST)
 	public void xfxmcyWxCore(HttpServletRequest request ,HttpServletResponse response) {
-		LoggerWx.debugInfo("post-----------");
 		PrintWriter out = null ;
 		try {
 			out = response.getWriter();

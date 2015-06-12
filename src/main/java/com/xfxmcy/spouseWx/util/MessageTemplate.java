@@ -31,6 +31,7 @@ public class MessageTemplate {
 	public static String getMainMenu() {  
 	    StringBuffer buffer = new StringBuffer();  
 	    buffer.append("您好，我是cy，请回复数字选择服务：").append("\n\n");  
+	    buffer.append("0  快递查询").append("\n"); 
 	    buffer.append("1  天气预报").append("\n");  
 	    buffer.append("2  公交查询").append("\n");  
 	    buffer.append("3  我的照片").append("\n");  
