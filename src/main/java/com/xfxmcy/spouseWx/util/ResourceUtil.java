@@ -149,6 +149,19 @@ public class ResourceUtil {
 	}
 	/**
 	 * 
+	 * getXfxmcyPhotoPrefix:我的图片  前缀地址
+	 *
+	 * @return
+	 *   ver     date      		author
+	 * ──────────────────────────────────
+	 *   		 2015年6月19日 		cy
+	 */
+	public static final String getXfxmcyPhotoPrefix(){
+		return bundle.getString("xfxmcyPhotoPrefix");
+	}
+	
+	/**
+	 * 
 	 * getMailSmtpServer:mail smtp server
 	 *
 	 * @return
@@ -235,7 +248,7 @@ public class ResourceUtil {
 	}
 	/**
 	 * 
-	 * getJuHeKey:key for JUHE
+	 * getJuHeKey:express key for JUHE
 	 *
 	 * @return
 	 *   ver     date      		author
@@ -260,6 +273,20 @@ public class ResourceUtil {
 	public static String getExpressCompanyCode(String company) {
 		
 		return bundle.getString(company + "_JUHE");
+		
+	}
+	/**
+	 * 
+	 * getJuHeKey_WEATHER:weather key for juhe
+	 *
+	 * @return
+	 *   ver     date      		author
+	 * ──────────────────────────────────
+	 *   		 2015年6月15日 		cy
+	 */
+	public static String getJuHeKey_WEATHER() {
+		
+		return bundle.getString("weatherKey_JUHE");
 		
 	}
 }

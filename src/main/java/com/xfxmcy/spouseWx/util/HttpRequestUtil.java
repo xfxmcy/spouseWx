@@ -35,7 +35,8 @@ import java.net.URLConnection;
 public class HttpRequestUtil {
 	/*快递查询url   聚合数据*/
 	public static String EXPRESS_URL_JUHE = "http://v.juhe.cn/exp/index?key=" + ResourceUtil.getJuHeKey_EXPRESS();
-	
+	/*天气预报查询url 聚合数据*/
+	public static String WEATHER_URL_JUHE = "http://op.juhe.cn/onebox/weather/query?key=" + ResourceUtil.getJuHeKey_WEATHER();
 	/*快递100*/ 
 	public static String EXPRESS_URL_KUAIDI100 = "http://api.kuaidi100.com/api?id=XXXX&com=tiantian&nu=11111&show=2&muti=1&order=desc=";
 	/**

@@ -17,5 +17,11 @@
 	<context:component-scan
 		base-package="com.xfxmcy.spouseWx.service.impl,com.xfxmcy.spouseWx.util" />
 	
-
+	<bean id="businessFactory" class="org.apache.cxf.jaxws.JaxWsProxyFactoryBean"> 
+    	<property name="serviceClass" value="com.xfxmcy.spouseWx.wsdl.photo.PhotoWService" />
+		<!-- <property name="address" value="http://172.16.3.34:18080/WS_Server/CxService/CxService?wsdl" /> -->
+		<property name="address" value="http://xfxmcy.com/cyws/photoWs?wsdl" />
+    </bean>
+    <bean id="photoWService" class="com.xfxmcy.spouseWx.wsdl.photo.PhotoWService" factory-bean="businessFactory" factory-method="create"></bean>
+   
 </beans>

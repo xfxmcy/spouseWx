@@ -13,11 +13,15 @@
 
 package com.xfxmcy.spouseWx.service.impl;
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
 
@@ -28,12 +32,17 @@ import com.xfxmcy.spouseWx.message.util.TextMessage;
 import com.xfxmcy.spouseWx.pojo.Express;
 import com.xfxmcy.spouseWx.pojo.ExpressInfo;
 import com.xfxmcy.spouseWx.pojo.ExpressItem;
+import com.xfxmcy.spouseWx.pojo.WeatherInfo;
+import com.xfxmcy.spouseWx.pojo.WeatherRealtime;
 import com.xfxmcy.spouseWx.service.WxCoreService;
 import com.xfxmcy.spouseWx.util.HttpRequestUtil;
 import com.xfxmcy.spouseWx.util.LoggerWx;
 import com.xfxmcy.spouseWx.util.MessageTemplate;
 import com.xfxmcy.spouseWx.util.MessageUtil;
 import com.xfxmcy.spouseWx.util.ResourceUtil;
+import com.xfxmcy.spouseWx.wsdl.photo.PhotoWService;
+import com.xfxmcy.spouseWx.wsdl.photo.QueryParam;
+import com.xfxmcy.spouseWx.wsdl.photo.SmPhotoArray;
 
 /**
  * ClassName:WxCoreServiceImpl
@@ -50,7 +59,8 @@ import com.xfxmcy.spouseWx.util.ResourceUtil;
 @Service
 public class WxCoreServiceImpl implements WxCoreService {
 
-	
+	@Resource	
+	private PhotoWService photoWService ;
 	
 	@Override
 	public String disposeWxBusiness(Map<String, String> requestMap) {
@@ -64,7 +74,7 @@ public class WxCoreServiceImpl implements WxCoreService {
 		String toUserName = requestMap.get("ToUserName");
 		// 消息类型
 		String msgType = requestMap.get("MsgType");
-		
+		LoggerWx.debugInfo("发送方  openId___" + fromUserName);
 		textMessage = new TextMessage();
 		textMessage.setToUserName(fromUserName);
 		textMessage.setFromUserName(toUserName);
@@ -102,6 +112,7 @@ public class WxCoreServiceImpl implements WxCoreService {
 			String content = requestMap.get("Content").trim();
 			/*主菜单*/	
 			if(null != content && ("?".equals(content.trim()) || "？".equals(content.trim())) ){
+				//o6zxSt8G_DbKZZo7QS1fBd4MVJ2g  cy
 				textMessage.setContent(MessageTemplate.getMainMenu());
 			}
 			/*空输入*/
@@ -110,13 +121,19 @@ public class WxCoreServiceImpl implements WxCoreService {
 			}
 			/*天气预报*/
 			else if(null != content && "1".equals(content.trim())){
-				textMessage.setContent("...此功能正在开发  请稍后");
+				textMessage.setContent("请输入  天气 ,城市！\n"
+						+ "eg : 天气,天津");
 			}
 			/*快递查询*/
 			else if(null != content && "0".equals(content.trim())){
 				textMessage.setContent("请输入  快递 ,快递公司,快递单号！\n"
 						+ "目前支持  EMS、圆通、顺丰、申通、中通、韵达、天天 \n"
 						+ "eg : 快递,顺丰,892793871298");
+			}
+			/*照片查询*/
+			else if(null != content && "3".equals(content.trim())){
+				
+				return photoWeb(content,fromUserName,toUserName);
 			}
 			else if("主页".equals(content)){
 				return indexWeb(content,fromUserName,toUserName);
@@ -133,6 +150,14 @@ public class WxCoreServiceImpl implements WxCoreService {
 					String message = expressWeb(ordersSecond,fromUserName,toUserName);
 					textMessage.setContent(message);
 				}
+				else if(orders.length == 2 && "天气".equals(orders[0])){
+					String message = expressWeb(orders,fromUserName,toUserName);
+					textMessage.setContent(message);
+				}
+				else if(ordersSecond.length == 2 && "天气".equals(ordersSecond[0])){
+					String message = weatherWeb(ordersSecond,fromUserName,toUserName);
+					textMessage.setContent(message);
+				}
 				else
 					textMessage.setContent(content + "输入错误 	 可输入 	 ?  查看帮助 ");
 			}
@@ -143,6 +168,64 @@ public class WxCoreServiceImpl implements WxCoreService {
 		respXml = MessageUtil.messageToXml(textMessage);
 		return respXml;
 
+	}
+	
+	/**
+	 * 
+	 * photoWeb:(这里用一句话描述这个方法的作用)
+	 *
+	 * @param content
+	 * @param fromUserName
+	 * @param toUserName
+	 * @return
+	 *   ver     date      		author
+	 * ──────────────────────────────────
+	 *   		 2015年6月19日 		cy
+	 */
+	private String photoWeb(String content, String fromUserName,
+			String toUserName) {
+		QueryParam param = new QueryParam();
+		param.setQueryType("queryOnBG");
+		param.setOwner("cy");
+		SmPhotoArray list = photoWService.queryMyPhotos(param);
+		if(null != list && !list.getItem().isEmpty()){
+			LoggerWx.debugInfo("changdu  wei ___" + list.getItem().size());
+			Article article = null ;
+			List<Article> articleList = new ArrayList<Article>();
+			/*list.getItem()*/
+			for (int i = 0; i < list.getItem().size(); i++) {
+				article = new Article();
+				article.setTitle(list.getItem().get(i).getTitle());
+				article.setDescription(list.getItem().get(i).getTitle());
+				article.setPicUrl(ResourceUtil.getXfxmcyPhotoPrefix() + list.getItem().get(i).getUrl());
+				//article.setUrl("http://resource.tjise.edu.cn/spouseWx/index.jsp");
+				article.setUrl("http://xfxmcy.com/spouse/managerment/cyPhoto.do");
+				articleList.add(article);
+			}
+			
+			
+			
+			
+			
+			
+			
+			// 创建图文消息
+			NewsMessage newsMessage = new NewsMessage();
+			newsMessage.setToUserName(fromUserName);
+			newsMessage.setFromUserName(toUserName);
+			newsMessage.setCreateTime(new Date().getTime());
+			newsMessage.setMsgType(MessageUtil.RESP_MESSAGE_TYPE_NEWS);
+			newsMessage.setArticleCount(articleList.size());
+			newsMessage.setArticles(articleList);
+			return  MessageUtil.messageToXml(newsMessage);
+		}else{
+			TextMessage textMessage = new TextMessage();
+			textMessage.setToUserName(fromUserName);
+			textMessage.setFromUserName(toUserName);
+			textMessage.setContent("暂无图片...");
+			return  MessageUtil.messageToXml(textMessage);
+		}
+		
 	}
 	/*String content = requestMap.get("Content").trim();
 	LoggerWx.debugInfo("发送方__"+ fromUserName + "开发方__" +toUserName + "发送内容__" + content);
@@ -219,12 +302,84 @@ public class WxCoreServiceImpl implements WxCoreService {
 			
 		}catch(Exception e){
 			LoggerWx.loggingWx(e);
-			return "系统暂停服务...请稍后查询";
+			return "系统暂停服务...请联系管理员";
 		}
 		return buffer.toString();
 		
 	}
-
+	/**
+	 * 
+	 * expressWeb:天气预报
+	 *
+	 * @param orders
+	 * @param fromUserName
+	 * @param toUserName
+	 * @return
+	 *   ver     date      		author
+	 * ──────────────────────────────────
+	 *   		 2015年6月15日 		cy
+	 */
+	private String weatherWeb(String[] orders, String fromUserName,
+			String toUserName) {
+		String city = orders[1].trim();
+		StringBuffer buffer = new StringBuffer();
+		StringBuffer sb = new StringBuffer(HttpRequestUtil.WEATHER_URL_JUHE);
+		
+		try{ 
+			city = URLEncoder.encode(city, "utf-8");
+			sb.append("&cityname=" + city);
+			String result = HttpRequestUtil.httpRequest(sb.toString());
+			JSONObject obResult = JSONObject.parseObject(result);
+			if("0".equals(obResult.get("error_code")) || 0 == Integer.parseInt(obResult.get("error_code").toString())){
+				buffer = new StringBuffer();
+				String jsonWeather = obResult.getJSONObject("result").getJSONObject("data").getJSONObject("realtime").toJSONString();
+				WeatherRealtime weatherRealtime = JSONObject.parseObject(jsonWeather,WeatherRealtime.class);
+				String jsonInfoWeather = obResult.getJSONObject("result").getJSONObject("data").getJSONArray("weather").toJSONString();
+				List<WeatherInfo> weas = JSONObject.parseArray(jsonInfoWeather, WeatherInfo.class);
+				buffer.append(weatherRealtime.getCity_name() + "  " + weatherRealtime.getDate());
+				buffer.append("\n");
+				buffer.append("  星期" + weatherRealtime.getWeek());
+				buffer.append("  农历" + weatherRealtime.getMoon());
+				buffer.append("\n");
+				buffer.append("  " + weatherRealtime.getWeather().getInfo());
+				buffer.append("  气温" + weatherRealtime.getWeather().getTemperature()+"°");
+				buffer.append("\n");
+				buffer.append("  湿度" + weatherRealtime.getWeather().getHumidity()+"%");
+				buffer.append(" " + weatherRealtime.getWind().getDirect()+"  "
+						+ weatherRealtime.getWind().getPower());
+				buffer.append("\n");
+				buffer.append("\n");
+				if(null != weas && weas.size() > 0){
+					buffer.append("一周气温");
+					buffer.append("\n");
+					for (int i = 0 ; i < weas.size() ; i++) {
+						//buffer.append("  " +weas.get(i).getDate());
+						//buffer.append("\n");
+						buffer.append("  星期" + weas.get(i).getWeek());
+						buffer.append("  农历" + weas.get(i).getNongli());
+						buffer.append("\n");
+						buffer.append("  白天 " + weas.get(i).getInfo().getDay().get(1)
+								+ " 气温" + weas.get(i).getInfo().getDay().get(2)+"%");
+						buffer.append("\n");
+						buffer.append("  夜间 " + weas.get(i).getInfo().getNight().get(1)
+								+ " 气温" + weas.get(i).getInfo().getNight().get(2)+"%");
+						buffer.append("\n");
+						buffer.append("\n");
+					} 
+				}
+			}
+			else {
+				return "系统访问异常...\n"
+						+ obResult.get("reason");
+			}
+			
+		}catch(Exception e){
+			LoggerWx.loggingWx(e);
+			return "系统暂停服务...请联系管理员";
+		}
+		return buffer.toString();
+		
+	}
 	/**
 	 * 
 	 * indexWeb: introduce index web

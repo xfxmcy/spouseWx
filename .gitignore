@@ -7,6 +7,8 @@
 /.settings
 /build
 /.externalToolBuilders
-/src/main/webapp/resource/swf
-/src/main/webapp/resource/upload/romantic/*.jpg
-/src/main/webapp/resource/upload/romantic/*.png
+/.gitignore
+/src/main/webapp/css/
+/src/main/webapp/js/
+/src/main/webapp/images/
+/src/main/webapp/index.html
